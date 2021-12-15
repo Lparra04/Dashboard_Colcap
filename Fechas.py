@@ -46,11 +46,11 @@ def date_string_to_date(date_string):
 @app.callback(
     dash.dependencies.Output("Tabla", "data"), #modificar datatable con "data"
     [dash.dependencies.Input("my-date-picker-range", "start_date"),#modificar fechas con el inicio
-        dash.dependencies.Input("my-date-picker-range", "end_date"),],#modificar fechas con el final
-)
+    dash.dependencies.Input("my-date-picker-range", "end_date")])#modificar fechas con el final
+
 def update_data(start_date, end_date): #funcion para actualizar
     data = df.to_dict("records") #df a diccionario
-    if start_date and end_date: #condicional
+    if start_date and end_date:
         mask = (date_string_to_date(df["FECHA ASAMBLEA"]) >= date_string_to_date(start_date)) & (
             date_string_to_date(df["FECHA ASAMBLEA"]) <= date_string_to_date(end_date)
         ) #Condicionales para filtrado de fecha
