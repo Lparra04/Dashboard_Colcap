@@ -13,7 +13,7 @@ app = dash.Dash(__name__)
 
 
 app.layout = html.Div([
-  dcc.Dropdown(id='my-dropdown', multi=True,
+  dcc.Dropdown(id='emisor', multi=True,
   options=[{'label': x, 'value': x} for x in sorted(df.EMISOR.unique())],
   clearable=True,
   placeholder="Seleccione el Emisor de la accion"),
@@ -32,7 +32,7 @@ app.layout = html.Div([
 
 @app.callback(
     Output('Tabla', 'data'),
-    [Input('my-dropdown', 'value')],
+    [Input('emisor', 'value')],
     prevent_initial_call=False
 )
 
