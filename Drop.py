@@ -13,15 +13,10 @@ app = dash.Dash(__name__)
 
 
 app.layout = html.Div([
-  dcc.Dropdown(id='Emi', multi=True,
+  dcc.Dropdown(id='my-dropdown', multi=True,
   options=[{'label': x, 'value': x} for x in sorted(df.EMISOR.unique())],
   clearable=True,
-  placeholder="Seleccione el emisor de la accion"),
-  
-  dcc.Dropdown(id='Nemo', multi=True,
-  options=[{'label': x, 'value': x} for x in sorted(df.EMISOR.unique())],
-  clearable=True,
-  placeholder="Seleccione el nemotecnico de la accion"),
+  placeholder="Seleccione el Emisor de la accion"),
 
   html.Div(id='dd-output-container'),
   
@@ -37,14 +32,13 @@ app.layout = html.Div([
 
 @app.callback(
     Output('Tabla', 'data'),
-    [Input('Emi', 'value'),
-    Input('Nemo', 'value')],
+    [Input('my-dropdown', 'value')],
     prevent_initial_call=False
 )
 
-def update_rows(selected_value,val_chosen):
+def update_rows(selected_value):
 
-  if len(selected_value,) == 0:
+  if len(selected_value) == 0:
     data=df.to_dict('records')
     return data
   elif len(selected_value) > 0:
@@ -57,4 +51,3 @@ if __name__ == '__main__':
     app.run_server()
     
     
-
