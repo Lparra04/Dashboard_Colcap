@@ -1,7 +1,7 @@
 import dash
 import pandas as pd
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
 from dash import dash_table
 
@@ -9,7 +9,7 @@ df = pd.read_excel("C:/Users/JosePinzon/Documents/FINTRADE/Python/Archivo2021.xl
 
 
 
-app = dash.Dash(__name__)
+app = dash.Dash()
 
 
 app.layout = html.Div([
