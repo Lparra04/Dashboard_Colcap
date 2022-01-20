@@ -9,9 +9,10 @@ library(shinyWidgets)
 Archivo2020 <- read_excel("C:\\Users\\josep\\Documents\\Universidad\\FINTRADE\\Python\\Archivo2020.xlsx")
 Archivo2020$`FECHA ASAMBLEA` <- as.Date(Archivo2020$`FECHA ASAMBLEA`)
 ACCIONES <- read_excel("C:\\Users\\josep\\Documents\\Universidad\\FINTRADE\\Python\\ACCIONES.xlsx")
+ACCIONES$fecha <- as.Date(ACCIONES$fecha)
 algo <- tidyr::gather(ACCIONES, key = "Accion", value = "Precio",
                       PFBCOLOM, NUTRESA, PFGRUPSURA,ECOPETROL)
-algo$fecha <- as.Date(algo$fecha)
+
 opciones <- c("PFBCOLOM", "NUTRESA", "PFGRUPSURA","ECOPETROL")
 
 ui <- dashboardPage(
@@ -52,7 +53,7 @@ ui <- dashboardPage(
         h2("Base de datos fechas Ex-dividendo"),
         br(),
         fluidRow(
-          column(12,
+          column(11,
                  dataTableOutput("base")))
       ),
       
@@ -64,21 +65,20 @@ ui <- dashboardPage(
         fluidRow(
           column(3,
                  dateRangeInput("IN_Fechas1", "Seleccione el rango de fechas",
-                                start = "2020-01-01",end = "2020-12-31",
-                                min = "2020-01-01",max = "2020-12-31",
+                                start = "2020-01-01",end = "2021-12-31",
+                                min = "2020-01-01",max = "2021-12-31",
                                 format = "yyyy-mm-dd",
                                 width = "200px")),
           column(3,
-                 selectInput("IN_Emisor1",label = "Emisor",
-                             choices = NULL,
-                             selected = NULL),
                  selectInput("IN_Nemo1",label = "Nemotecnico accion.",
-                             choices = NULL)
-                 )),
+                             choices = opciones)
+          )),
+        h3("Retorno por dividendos"),
         verbatimTextOutput("base1"),
-        dataTableOutput("base2")
-        )
+        h3("Retorno por diferencia de precio"),
+        verbatimTextOutput("base2")
       )
+    )
     
     
   ),
@@ -88,22 +88,22 @@ ui <- dashboardPage(
 server <- function(input, output, session) {  
   
   
-################################## PRIMER MENU #################################
+  ################################## PRIMER MENU #################################
   
   observe({
     dat0<-filter(Archivo2020,`FECHA ASAMBLEA` >= input$IN_Fechas[1] & `FECHA ASAMBLEA` <= input$IN_Fechas[2])
     updatePickerInput(session, "IN_Emisor", label = "Emisor", choices = sort(unique(dat0$EMISOR)),selected = unique(dat0$EMISOR))
   })
-
+  
   observe({
     dat1<-Archivo2020$NEMOTÉCNICO[Archivo2020$EMISOR%in%input$IN_Emisor]
     updatePickerInput(session, "IN_Nemo", label = "Nemotecnico", choices = sort(unique(dat1)),selected = unique(dat1))
   })
   
-
+  
   datn<-reactive({
     Archivo2020 %>% filter(EMISOR %in% input$IN_Emisor &
-                               NEMOTÉCNICO %in% input$IN_Nemo)%>%
+                             NEMOTÉCNICO %in% input$IN_Nemo)%>%
       select(-`FECHA INGRESO`, -`MONTO TOTAL ENTREGADO EN DIVIDENDOS`, -`FECHA INICIAL`)
   })
   
@@ -112,27 +112,14 @@ server <- function(input, output, session) {
     datn()
     
   })
- 
-  
-################################# sEGUNDO MENU #################################
   
   
-  observe({
-    dat01<-filter(Archivo2020,`FECHA ASAMBLEA` >= input$IN_Fechas1[1] & `FECHA ASAMBLEA` <= input$IN_Fechas1[2])
-    updateSelectInput(session, "IN_Emisor1", label = "Emisor", choices = sort(unique(dat01$EMISOR)),
-                      selected = NULL)
-  })
-  
-  observe({
-    dat11<-Archivo2020$NEMOTÉCNICO[Archivo2020$EMISOR%in%input$IN_Emisor1]
-    updateSelectInput(session, "IN_Nemo1", label = "Nemotecnico de la accion", choices = sort(unique(dat11)),
-                      selected = NULL)
-  })
+  ################################# sEGUNDO MENU #################################
   
   
   Base_R<-reactive({
-    Archivo2020 %>% filter(EMISOR %in% input$IN_Emisor1 &
-                             NEMOTÉCNICO %in% input$IN_Nemo1)%>%
+    Archivo2020 %>% filter(NEMOTÉCNICO %in% input$IN_Nemo1 &
+                             `FECHA ASAMBLEA` >= input$IN_Fechas1[1] & `FECHA ASAMBLEA` <= input$IN_Fechas1[2])%>%
       select(-`FECHA INGRESO`, -`MONTO TOTAL ENTREGADO EN DIVIDENDOS`, -`FECHA INICIAL`,
              -`DESCRIPCIÓN PAGO PDU`,-MONEDA,-`VALOR TOTAL DEL DIVIDENDO`,-`FECHA FINAL Y DE PAGO`)
   })
@@ -146,18 +133,18 @@ server <- function(input, output, session) {
   output$base1 <- renderPrint({
     
     Buena <- Base_R()
-    head(Buena)
+    sum(Buena$`VALOR CUOTA`)
     
   })
   
   
-  output$base2 <- renderDataTable({
+  output$base2 <- renderPrint({
     
     Buena <- Retorno_Precio()
-    Buena
+    tail(Buena$Precio,1) - head(Buena$Precio,1)
     
   })
-
+  
 
   
 }
