@@ -6,10 +6,17 @@ library(readxl)
 library(shinyWidgets)
 library(ggplot2)
 
-Archivo2020 <- read_excel("C:/Users/josep/Documents/Universidad/FINTRADE/Python/Archivo2020.xlsx")
+library(readxl)
+Archivo2020 <- read_excel("Archivo2020.xlsx", 
+                          col_types = c("date", "text", "text", 
+                                        "text", "text", "date", "numeric", 
+                                        "text", "numeric", "text", "text", 
+                                        "numeric", "text"))
+
 Archivo2020$`FECHA ASAMBLEA` <- as.Date(Archivo2020$`FECHA ASAMBLEA`)
 Archivo2020$`FECHA INICIAL` <- as.Date(Archivo2020$`FECHA INICIAL`)
-ACCIONES <- read_excel("C:/Users/josep/Documents/Universidad/FINTRADE/Python/ACCIONES.xlsx")
+
+ACCIONES <- read_excel("ACCIONES.xlsx")
 ACCIONES$fecha <- as.Date(ACCIONES$fecha)
 
 df <- tidyr::gather(ACCIONES, key = "Accion", value = "Precio",
@@ -150,8 +157,9 @@ server <- function(input, output, session) {
   
   
   output$Grafico_AD <- renderPlot({
-    
-    ggplot(Base_AD(), aes(x=`FECHA INICIAL`,y=T_div))+
+    Dividendos <- Base_AD()
+    Dividendos <- na.omit(Dividendos)
+    ggplot(Dividendos, aes(x=`FECHA INICIAL`,y=T_div))+
       geom_step(colour = "Blue")+
       scale_y_continuous(labels = scales::label_comma(), 
                          breaks = scales::breaks_extended(n = 10))+
@@ -169,7 +177,7 @@ server <- function(input, output, session) {
     Archivo2020 %>% filter(NEMOTÉCNICO %in% input$IN_Nemo1 &
                              `FECHA ASAMBLEA` >= input$IN_Fechas1[1] & `FECHA ASAMBLEA` <= input$IN_Fechas1[2])%>%
       select(-`FECHA INGRESO`, -`MONTO TOTAL ENTREGADO EN DIVIDENDOS`, -`FECHA INICIAL`,
-             -`DESCRIPCIÃ“N PAGO PDU`,-MONEDA,-`VALOR TOTAL DEL DIVIDENDO`,-`FECHA FINAL Y DE PAGO`)
+             -`DESCRIPCIÓN PAGO PDU`,-MONEDA,-`VALOR TOTAL DEL DIVIDENDO`,-`FECHA FINAL Y DE PAGO`)
   })
   
   
