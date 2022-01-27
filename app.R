@@ -6,18 +6,16 @@ library(readxl)
 library(shinyWidgets)
 library(ggplot2)
 
-library(readxl)
-Archivo2020 <- read_excel("Archivo2020.xlsx", 
-                          col_types = c("date", "text", "text", 
-                                        "text", "text", "date", "numeric", 
-                                        "text", "numeric", "text", "text", 
-                                        "numeric", "text"))
+Archivo2020<-read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTRG-hlb0R-wchJu9rQwx4S-nS2ioCY8RsyPigRLLH1D1scB_6_o-6VPEKD1IiRrPG_c06O3G8AZQhD/pub?output=csv")
 
-Archivo2020$`FECHA ASAMBLEA` <- as.Date(Archivo2020$`FECHA ASAMBLEA`)
-Archivo2020$`FECHA INICIAL` <- as.Date(Archivo2020$`FECHA INICIAL`)
+Archivo2020$FECHA.ASAMBLEA <- as.Date(Archivo2020$FECHA.ASAMBLEA)
+Archivo2020$FECHA.INICIAL <- as.Date(Archivo2020$FECHA.INICIAL)
+Archivo2020$VALOR.CUOTA <- as.numeric(Archivo2020$VALOR.CUOTA)
+names(Archivo2020)[8] <- "TOTAL"
 
-ACCIONES <- read_excel("ACCIONES.xlsx")
-ACCIONES$fecha <- as.Date(ACCIONES$fecha)
+
+ACCIONES <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR-2gtUQ9kebLpXxVPz3MrAqsORd4CqewaRxP_QU8i4oAWOipvEDXj_aZ7rhFtI6VMErOlz8_V2iEWs/pub?gid=0&single=true&output=csv")
+ACCIONES$fecha <- as.Date(ACCIONES$fecha, format = "%d/%m/%y")
 
 df <- tidyr::gather(ACCIONES, key = "Accion", value = "Precio",
                     PFBCOLOM, NUTRESA, PFGRUPSURA,ECOPETROL)
@@ -49,8 +47,8 @@ ui <- dashboardPage(
         fluidRow(
           column(3,
                  dateRangeInput("IN_Fechas", "Seleccione el rango de fechas",
-                                start = "2020-01-01",end = "2020-12-31",
-                                min = "2020-01-01",max = "2020-12-31",
+                                start = "2020-01-01",end = "2021-12-31",
+                                min = "2020-01-01",max = "2021-12-31",
                                 format = "yyyy-mm-dd",
                                 width = "200px"),
                  pickerInput("IN_Sector", label = "Sector Economico",
@@ -108,8 +106,8 @@ server <- function(input, output, session) {
   ################################## PRIMER MENU #################################
   
   observe({
-    dat0<-filter(Archivo2020,`FECHA ASAMBLEA` >= input$IN_Fechas[1] &
-                   `FECHA ASAMBLEA` <= input$IN_Fechas[2])
+    dat0<-filter(Archivo2020,FECHA.ASAMBLEA >= input$IN_Fechas[1] &
+                   FECHA.ASAMBLEA <= input$IN_Fechas[2])
     updatePickerInput(session, "IN_Sector", label = "Sector economico", 
                       choices = sort(unique(dat0$SECTOR)),selected = unique(dat0$SECTOR))
   })
@@ -121,7 +119,7 @@ server <- function(input, output, session) {
   })
   
   observe({
-    dat2<-Archivo2020$NEMOTÉCNICO[Archivo2020$EMISOR%in%input$IN_Emisor]
+    dat2<-Archivo2020$NEMOTECNICO[Archivo2020$EMISOR%in%input$IN_Emisor]
     updatePickerInput(session, "IN_Nemo", label = "Nemotecnico", 
                       choices = sort(unique(dat2)),selected = unique(dat2))
   })
@@ -130,8 +128,9 @@ server <- function(input, output, session) {
   datn<-reactive({
     Archivo2020 %>% filter(SECTOR %in% input$IN_Sector&
                              EMISOR %in% input$IN_Emisor &
-                             NEMOTÉCNICO %in% input$IN_Nemo)%>%
-      select(-`FECHA INGRESO`, -`MONTO TOTAL ENTREGADO EN DIVIDENDOS`, -`FECHA INICIAL`)
+                             NEMOTECNICO %in% input$IN_Nemo)%>%
+      select(-FECHA.INGRESO, -MONTO.TOTAL.ENTREGADO.EN.DIVIDENDOS,
+             -FECHA.FINAL.Y.DE.PAGO)
   })
   
   output$base <- renderDataTable({
@@ -144,13 +143,14 @@ server <- function(input, output, session) {
   
   Base_AD<-reactive({
     Archivo2020%>%
-      group_by(`FECHA INICIAL`)%>%
-      filter(`FECHA ASAMBLEA` >= input$IN_Fechas[1] &
-               `FECHA ASAMBLEA` <= input$IN_Fechas[2] &
+      na.omit(Archivo2020$VALOR.CUOTA)%>%
+      group_by(FECHA.INICIAL)%>%
+      filter(FECHA.ASAMBLEA >= input$IN_Fechas[1] &
+               FECHA.ASAMBLEA <= input$IN_Fechas[2] &
                SECTOR %in% input$IN_Sector & 
                EMISOR %in% input$IN_Emisor &
-               NEMOTÉCNICO %in% input$IN_Nemo)%>%
-      summarize(Total = sum(`VALOR CUOTA`))%>%
+               NEMOTECNICO %in% input$IN_Nemo)%>%
+      summarize(Total = sum(VALOR.CUOTA))%>%
       mutate(T_div=cumsum(Total))
   })
   
@@ -158,8 +158,7 @@ server <- function(input, output, session) {
   
   output$Grafico_AD <- renderPlot({
     Dividendos <- Base_AD()
-    Dividendos <- na.omit(Dividendos)
-    ggplot(Dividendos, aes(x=`FECHA INICIAL`,y=T_div))+
+    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=T_div))+
       geom_step(colour = "Blue")+
       scale_y_continuous(labels = scales::label_comma(), 
                          breaks = scales::breaks_extended(n = 10))+
@@ -174,10 +173,10 @@ server <- function(input, output, session) {
   
   
   Base_R<-reactive({
-    Archivo2020 %>% filter(NEMOTÉCNICO %in% input$IN_Nemo1 &
-                             `FECHA ASAMBLEA` >= input$IN_Fechas1[1] & `FECHA ASAMBLEA` <= input$IN_Fechas1[2])%>%
-      select(-`FECHA INGRESO`, -`MONTO TOTAL ENTREGADO EN DIVIDENDOS`, -`FECHA INICIAL`,
-             -`DESCRIPCIÓN PAGO PDU`,-MONEDA,-`VALOR TOTAL DEL DIVIDENDO`,-`FECHA FINAL Y DE PAGO`)
+    Archivo2020 %>% filter(NEMOTECNICO %in% input$IN_Nemo1 &
+                             FECHA.ASAMBLEA >= input$IN_Fechas1[1] & FECHA.ASAMBLEA <= input$IN_Fechas1[2])%>%
+      select(-FECHA.INGRESO, -MONTO.TOTAL.ENTREGADO.EN.DIVIDENDOS, -FECHA.INICIAL,
+             -DESCRIPCION.PAGO.PDU,-MONEDA,-TOTAL,-FECHA.FINAL.Y.DE.PAGO)
   })
   
   
@@ -190,7 +189,7 @@ server <- function(input, output, session) {
   output$base1 <- renderPrint({
     
     Reac_b <- Base_R()
-    sum(Reac_b$`VALOR CUOTA`)
+    sum(Reac_b$VALOR.CUOTA)
     
   })
   
