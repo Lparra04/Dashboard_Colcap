@@ -10,6 +10,7 @@ Archivo2020<-read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTRG-hlb0
 
 Archivo2020$FECHA.ASAMBLEA <- as.Date(Archivo2020$FECHA.ASAMBLEA)
 Archivo2020$FECHA.INICIAL <- as.Date(Archivo2020$FECHA.INICIAL)
+Archivo2020$FECHA.FINAL.Y.DE.PAGO <- as.Date(Archivo2020$FECHA.FINAL.Y.DE.PAGO)
 Archivo2020$VALOR.CUOTA <- as.numeric(Archivo2020$VALOR.CUOTA)
 names(Archivo2020)[8] <- "TOTAL"
 
@@ -46,23 +47,26 @@ ui <- dashboardPage(
         tabName = "DataF",
         fluidRow(
           column(3,
-                 dateRangeInput("IN_Fechas", "Seleccione el rango de fechas",
-                                start = "2020-01-01",end = "2021-12-31",
-                                min = "2020-01-01",max = "2021-12-31",
+                 dateRangeInput("IN_Fechas", "1) Seleccione el rango de fechas",
+                                start = "2020-01-01",end = "2022-12-31",
+                                min = "2020-01-01",max = "2024-12-31",
                                 format = "yyyy-mm-dd",
                                 width = "200px"),
                  pickerInput("IN_Sector", label = "Sector Economico",
+                             choices = NULL, multiple = T, 
+                             options = list(`actions-box` = TRUE)),
+                 pickerInput("IN_Moneda", label = "Moneda",
                              choices = NULL, multiple = T, 
                              options = list(`actions-box` = TRUE))),
           column(3,
                  pickerInput("IN_Emisor",label = "Emisor",
                              choices = NULL,multiple = T,
                              options = list(`actions-box` = TRUE)),
-                 pickerInput("IN_Nemo",label = "Nemo",
+                 pickerInput("IN_Nemo",label = "Nemotecnico",
                              choices = NULL,multiple = T,
                              options = list(`actions-box` = TRUE))
           )),
-        h2(),
+        h2("Grafico dividendos acumulados"),
         br(),
         plotOutput("Grafico_AD"),
         h2("Base de datos fechas Ex-dividendo"),
@@ -80,8 +84,8 @@ ui <- dashboardPage(
         fluidRow(
           column(3,
                  dateRangeInput("IN_Fechas1", "Seleccione el rango de fechas",
-                                start = "2020-01-01",end = "2021-12-31",
-                                min = "2020-01-01",max = "2021-12-31",
+                                start = "2020-01-01",end = "2022-12-31",
+                                min = "2020-01-01",max = "2024-12-31",
                                 format = "yyyy-mm-dd",
                                 width = "200px")),
           column(3,
@@ -108,35 +112,48 @@ server <- function(input, output, session) {
   observe({
     dat0<-filter(Archivo2020,FECHA.ASAMBLEA >= input$IN_Fechas[1] &
                    FECHA.ASAMBLEA <= input$IN_Fechas[2])
-    updatePickerInput(session, "IN_Sector", label = "Sector economico", 
+    updatePickerInput(session, "IN_Sector", label = "2) Sector economico", 
                       choices = sort(unique(dat0$SECTOR)),selected = unique(dat0$SECTOR))
   })
   
+  
   observe({
-    dat1<-Archivo2020$EMISOR[Archivo2020$SECTOR%in%input$IN_Sector]
-    updatePickerInput(session, "IN_Emisor", label = "Emisor de la accion", 
+    dat00<-Archivo2020$MONEDA[Archivo2020$SECTOR%in%input$IN_Sector]
+    updatePickerInput(session, "IN_Moneda", label = "3) Moneda", 
+                      choices = sort(unique(dat00)),selected = unique(dat00))
+  })
+  
+  
+  observe({
+    dat1<-Archivo2020$EMISOR[Archivo2020$MONEDA%in%input$IN_Moneda]
+    updatePickerInput(session, "IN_Emisor", label = "4) Emisor de la accion", 
                       choices = sort(unique(dat1)),selected = unique(dat1))
   })
   
   observe({
     dat2<-Archivo2020$NEMOTECNICO[Archivo2020$EMISOR%in%input$IN_Emisor]
-    updatePickerInput(session, "IN_Nemo", label = "Nemotecnico", 
+    updatePickerInput(session, "IN_Nemo", label = "5)Nemotecnico", 
                       choices = sort(unique(dat2)),selected = unique(dat2))
   })
   
   
   datn<-reactive({
-    Archivo2020 %>% filter(SECTOR %in% input$IN_Sector&
+    Archivo2020 %>% filter(SECTOR %in% input$IN_Sector &
+                             MONEDA %in% input$IN_Moneda &
                              EMISOR %in% input$IN_Emisor &
                              NEMOTECNICO %in% input$IN_Nemo)%>%
       select(-FECHA.INGRESO, -MONTO.TOTAL.ENTREGADO.EN.DIVIDENDOS,
-             -FECHA.FINAL.Y.DE.PAGO)
+             -DESCRIPCION.PAGO.PDU)
+    
   })
   
   output$base <- renderDataTable({
     
-    datn()
+    Base_M1 <- datn()
+    names(Base_M1)[7]="FECHA.FINAL"
+    names(Base_M1)[9]="CUOTA"
     
+    Base_M1
   })
   
   
@@ -164,7 +181,8 @@ server <- function(input, output, session) {
                          breaks = scales::breaks_extended(n = 10))+
       scale_x_date(date_breaks = "1 month",
                    date_labels = "%b-%y")+
-      labs(title = "Grafico dividendos acumulados Colcap")
+      labs(x = "Fecha de pago", y = "Dividendos")+
+      theme_bw()
     
   })
   
