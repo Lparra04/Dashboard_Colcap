@@ -42,6 +42,17 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    tags$head(tags$style(HTML('
+    /* main sidebar */
+        .skin-yellow .main-sidebar {
+                              background-color: #042e4f;
+                              }
+    
+    /* body */
+    .content-wrapper, .right-side {
+    background-color: #fafafa;
+    }
+    '))),
     tabItems(
       tabItem(
         tabName = "DataF",
@@ -66,14 +77,30 @@ ui <- dashboardPage(
                              choices = NULL,multiple = T,
                              options = list(`actions-box` = TRUE))
           )),
-        h2("Grafico dividendos acumulados"),
-        br(),
-        plotOutput("Grafico_AD"),
-        h2("Base de datos fechas Ex-dividendo"),
+        fluidRow(
+          column(12,
+                 h2(("GRAFICOS DIVIDENDOS"), align = "center", style = 'font-size:30px'))
+        ),
         br(),
         fluidRow(
-          column(11,
-                 dataTableOutput("base")))
+          tabBox(width = 12,title = "Graficos",
+                 
+                 tabPanel("Dividendos", plotOutput("Grafico_D")),
+                 tabPanel("Dividendos acumulados", plotOutput("Grafico_AD")))
+        ),
+        
+        fluidRow(
+          column(12,
+                 h2(("BASES DE DATOS FECHAS EX-DIVIDENDO"), 
+                    align = "center", style = 'font-size:30px'))
+        ),
+        br(),
+        fluidRow(
+          tabBox(width = 12,title = "Bases de datos",
+                 
+                 tabPanel("Base original", dataTableOutput("Base")),
+                 tabPanel("Resumen por dia", dataTableOutput("Base_d")))
+        ),
       ),
       
       
@@ -143,15 +170,15 @@ server <- function(input, output, session) {
                              EMISOR %in% input$IN_Emisor &
                              NEMOTECNICO %in% input$IN_Nemo)%>%
       select(-FECHA.INGRESO, -MONTO.TOTAL.ENTREGADO.EN.DIVIDENDOS,
-             -DESCRIPCION.PAGO.PDU)
+             -DESCRIPCION.PAGO.PDU,-MODO.DE.PAGO)
     
   })
   
-  output$base <- renderDataTable({
+  output$Base <- renderDataTable({
     
     Base_M1 <- datn()
-    names(Base_M1)[7]="FECHA.FINAL"
-    names(Base_M1)[9]="CUOTA"
+    names(Base_M1)[6]="FECHA.FINAL"
+    names(Base_M1)[8]="CUOTA"
     
     Base_M1
   })
@@ -161,28 +188,45 @@ server <- function(input, output, session) {
   Base_AD<-reactive({
     Archivo2020%>%
       na.omit(Archivo2020$VALOR.CUOTA)%>%
-      group_by(FECHA.INICIAL)%>%
+      group_by(MONEDA,FECHA.INICIAL)%>%
       filter(FECHA.ASAMBLEA >= input$IN_Fechas[1] &
                FECHA.ASAMBLEA <= input$IN_Fechas[2] &
-               SECTOR %in% input$IN_Sector & 
+               SECTOR %in% input$IN_Sector &
+               MONEDA %in% input$IN_Moneda &
                EMISOR %in% input$IN_Emisor &
                NEMOTECNICO %in% input$IN_Nemo)%>%
       summarize(Total = sum(VALOR.CUOTA))%>%
       mutate(T_div=cumsum(Total))
   })
   
+  output$Base_d <- renderDataTable({
+    Base_AD()
+  })
   
   
   output$Grafico_AD <- renderPlot({
     Dividendos <- Base_AD()
-    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=T_div))+
-      geom_step(colour = "Blue")+
+    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=T_div, color = MONEDA))+
+      geom_step()+
       scale_y_continuous(labels = scales::label_comma(), 
                          breaks = scales::breaks_extended(n = 10))+
-      scale_x_date(date_breaks = "1 month",
+      scale_x_date(date_breaks = "2 months",
                    date_labels = "%b-%y")+
       labs(x = "Fecha de pago", y = "Dividendos")+
-      theme_bw()
+      theme_classic()
+    
+  })
+  
+  output$Grafico_D <- renderPlot({
+    Dividendos <- Base_AD()
+    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=Total, color = MONEDA))+
+      geom_step()+
+      scale_y_continuous(labels = scales::label_comma(), 
+                         breaks = scales::breaks_extended(n = 10))+
+      scale_x_date(date_breaks = "2 months",
+                   date_labels = "%b-%y")+
+      labs(x = "Fecha de pago", y = "Dividendos")+
+      theme_classic()
     
   })
   
