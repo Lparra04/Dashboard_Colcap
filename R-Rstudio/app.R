@@ -8,11 +8,16 @@ library(ggplot2)
 
 Archivo2020<-read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTRG-hlb0R-wchJu9rQwx4S-nS2ioCY8RsyPigRLLH1D1scB_6_o-6VPEKD1IiRrPG_c06O3G8AZQhD/pub?output=csv")
 
+names(Archivo2020)[7] <- "FECHA.FINAL"
+names(Archivo2020)[8] <- "TOTAL"
+names(Archivo2020)[9] <- "CUOTA"
+names(Archivo2020)[11] <- "TOTAL.ENTREGADO.EN.DIVIDENDOS"
+
 Archivo2020$FECHA.ASAMBLEA <- as.Date(Archivo2020$FECHA.ASAMBLEA)
 Archivo2020$FECHA.INICIAL <- as.Date(Archivo2020$FECHA.INICIAL)
-Archivo2020$FECHA.FINAL.Y.DE.PAGO <- as.Date(Archivo2020$FECHA.FINAL.Y.DE.PAGO)
-Archivo2020$VALOR.CUOTA <- as.numeric(Archivo2020$VALOR.CUOTA)
-names(Archivo2020)[8] <- "TOTAL"
+Archivo2020$FECHA.FINAL <- as.Date(Archivo2020$FECHA.FINAL)
+Archivo2020$CUOTA <- as.numeric(Archivo2020$CUOTA)
+
 
 
 ACCIONES <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR-2gtUQ9kebLpXxVPz3MrAqsORd4CqewaRxP_QU8i4oAWOipvEDXj_aZ7rhFtI6VMErOlz8_V2iEWs/pub?gid=0&single=true&output=csv")
@@ -169,7 +174,7 @@ server <- function(input, output, session) {
                              MONEDA %in% input$IN_Moneda &
                              EMISOR %in% input$IN_Emisor &
                              NEMOTECNICO %in% input$IN_Nemo)%>%
-      select(-FECHA.INGRESO, -MONTO.TOTAL.ENTREGADO.EN.DIVIDENDOS,
+      select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS,
              -DESCRIPCION.PAGO.PDU,-MODO.DE.PAGO)
     
   })
@@ -187,7 +192,7 @@ server <- function(input, output, session) {
   
   Base_AD<-reactive({
     Archivo2020%>%
-      na.omit(Archivo2020$VALOR.CUOTA)%>%
+      na.omit(Archivo2020$CUOTA)%>%
       group_by(MONEDA,FECHA.INICIAL)%>%
       filter(FECHA.ASAMBLEA >= input$IN_Fechas[1] &
                FECHA.ASAMBLEA <= input$IN_Fechas[2] &
@@ -195,7 +200,7 @@ server <- function(input, output, session) {
                MONEDA %in% input$IN_Moneda &
                EMISOR %in% input$IN_Emisor &
                NEMOTECNICO %in% input$IN_Nemo)%>%
-      summarize(Total = sum(VALOR.CUOTA))%>%
+      summarize(Total = sum(CUOTA))%>%
       mutate(T_div=cumsum(Total))
   })
   
@@ -237,8 +242,8 @@ server <- function(input, output, session) {
   Base_R<-reactive({
     Archivo2020 %>% filter(NEMOTECNICO %in% input$IN_Nemo1 &
                              FECHA.ASAMBLEA >= input$IN_Fechas1[1] & FECHA.ASAMBLEA <= input$IN_Fechas1[2])%>%
-      select(-FECHA.INGRESO, -MONTO.TOTAL.ENTREGADO.EN.DIVIDENDOS, -FECHA.INICIAL,
-             -DESCRIPCION.PAGO.PDU,-MONEDA,-TOTAL,-FECHA.FINAL.Y.DE.PAGO)
+      select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS, -FECHA.INICIAL,
+             -DESCRIPCION.PAGO.PDU,-MONEDA,-TOTAL,-FECHA.FINAL)
   })
   
   
@@ -251,7 +256,7 @@ server <- function(input, output, session) {
   output$base1 <- renderPrint({
     
     Reac_b <- Base_R()
-    sum(Reac_b$VALOR.CUOTA)
+    sum(Reac_b$CUOTA)
     
   })
   
