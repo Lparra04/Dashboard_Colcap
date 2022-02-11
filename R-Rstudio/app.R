@@ -202,27 +202,27 @@ server <- function(input, output, session) {
   })
   
   output$Base_d <- renderDataTable({ #CREACION DEL OUTPUT Base_D.
-    Base_AD()
+    Base_AD() #Imprime Base_AD
   })
   
   
-  output$Grafico_AD <- renderPlot({
-    Dividendos <- Base_AD()
-    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=T_div, color = MONEDA))+
-      geom_step()+
-      scale_y_continuous(labels = scales::label_comma(), 
-                         breaks = scales::breaks_extended(n = 10))+
-      scale_x_date(date_breaks = "2 months",
-                   date_labels = "%b-%y")+
-      labs(x = "Fecha de pago", y = "Dividendos")+
-      theme_classic()
+  output$Grafico_AD <- renderPlot({ #Se crea Grafico_AD, el cual contiene un grafico de ggplot2.
+    Dividendos <- Base_AD() #Se establece el df Dividendos con la información de la función reactiva Base_AD()
+    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=T_div, color = MONEDA))+ #Seleccion de base de datos, columnas de los ejes x, y, color dependiendo el tipo de moneda.
+      geom_step()+ #Tipo de grafico
+      scale_y_continuous(labels = scales::label_comma(), #Ajuste numeros eje Y
+                         breaks = scales::breaks_extended(n = 10))+ #Ajuste de saltos eje Y
+      scale_x_date(date_breaks = "2 months", #Saltos fecha eje X
+                   date_labels = "%b-%y")+ #Formato de fecha eje X
+      labs(x = "Fecha de pago", y = "Dividendos")+ #Etiquetas eje x y eje Y.
+      theme_classic() #Tema o fondo del grafico.
     
   })
   
-  output$Grafico_D <- renderPlot({
-    Dividendos <- Base_AD()
-    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=Total, color = MONEDA))+
-      geom_step()+
+  output$Grafico_D <- renderPlot({ #Creacion del grafico llamado "Grafico_D".
+    Dividendos <- Base_AD() #Base de datos
+    ggplot(Dividendos, aes(x=FECHA.INICIAL,y=Total, color = MONEDA))+ #Seleccion de base de datos, columnas de los ejes x, y, color dependiendo el tipo de moneda.
+      geom_step()+ #Tipo de grafico
       scale_y_continuous(labels = scales::label_comma(), 
                          breaks = scales::breaks_extended(n = 10))+
       scale_x_date(date_breaks = "2 months",
@@ -236,31 +236,31 @@ server <- function(input, output, session) {
   ################################# sEGUNDO MENU #################################
   
   
-  Base_R<-reactive({
+  Base_R<-reactive({ #Creacion de funcion reactiva llamada Base_R.
     Archivo2020 %>% filter(NEMOTECNICO %in% input$IN_Nemo1 &
-                             FECHA.ASAMBLEA >= input$IN_Fechas1[1] & FECHA.ASAMBLEA <= input$IN_Fechas1[2])%>%
-      select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS, -FECHA.INICIAL,
+                             FECHA.ASAMBLEA >= input$IN_Fechas1[1] & FECHA.ASAMBLEA <= input$IN_Fechas1[2])%>% #Filtros de el input fechas de la segunda pestaña.
+      select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS, -FECHA.INICIAL, #Eliminacion de columnas.
              -DESCRIPCION.PAGO.PDU,-MONEDA,-TOTAL,-FECHA.FINAL)
   })
   
   
   
-  Retorno_Precio <- reactive({
+  Retorno_Precio <- reactive({#Funcion reactiva "Retorno_Precio".
     filter(df, Accion %in% input$IN_Nemo1 &
              fecha >= input$IN_Fechas1[1] & fecha <= input$IN_Fechas1[2])
   })
   
-  output$base1 <- renderPrint({
+  output$base1 <- renderPrint({ #Creacion de la salida u output base1
     
-    Reac_b <- Base_R()
-    sum(Reac_b$CUOTA)
+    Reac_b <- Base_R() #Establece df Reac_b con la información de la funcion reactiva Base_R().
+    sum(Reac_b$CUOTA) #Imprime el resultado de la suma de los valores de la columna CUOTA.
     
   })
   
   
-  output$base2 <- renderPrint({
-    Reac_b <- Retorno_Precio()
-    tail(Reac_b$Precio,1) - head(Reac_b$Precio,1)
+  output$base2 <- renderPrint({ #Creacion salida u output base2.
+    Reac_b <- Retorno_Precio() #Establece df Reac_b con la información de la funcion reactiva Retorno_Precio().
+    tail(Reac_b$Precio,1) - head(Reac_b$Precio,1) #Resta el valor de la ultima fila de la columna Precio con el primer valor de la columna Precio para dar la diferencia de precios.
   })
   
   
