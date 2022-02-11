@@ -13,37 +13,37 @@ names(Archivo2020)[8] <- "TOTAL"
 names(Archivo2020)[9] <- "CUOTA"
 names(Archivo2020)[11] <- "TOTAL.ENTREGADO.EN.DIVIDENDOS"
 
-Archivo2020$FECHA.ASAMBLEA <- as.Date(Archivo2020$FECHA.ASAMBLEA)
-Archivo2020$FECHA.INICIAL <- as.Date(Archivo2020$FECHA.INICIAL)
-Archivo2020$FECHA.FINAL <- as.Date(Archivo2020$FECHA.FINAL)
-Archivo2020$CUOTA <- as.numeric(Archivo2020$CUOTA)
+Archivo2020$FECHA.ASAMBLEA <- as.Date(Archivo2020$FECHA.ASAMBLEA) #Convertir tipo de dato a fecha. 
+Archivo2020$FECHA.INICIAL <- as.Date(Archivo2020$FECHA.INICIAL) #Convertir tipo de dato a fecha.
+Archivo2020$FECHA.FINAL <- as.Date(Archivo2020$FECHA.FINAL) #Convertir tipo de dato a fecha.
+Archivo2020$CUOTA <- as.numeric(Archivo2020$CUOTA) #Convertir tipo de dato a numérico.
 
 
 
 ACCIONES <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR-2gtUQ9kebLpXxVPz3MrAqsORd4CqewaRxP_QU8i4oAWOipvEDXj_aZ7rhFtI6VMErOlz8_V2iEWs/pub?gid=0&single=true&output=csv")
-ACCIONES$fecha <- as.Date(ACCIONES$fecha, format = "%d/%m/%y")
+ACCIONES$fecha <- as.Date(ACCIONES$fecha, format = "%d/%m/%y") #Convertir tipo de dato a fecha.
 
 df <- tidyr::gather(ACCIONES, key = "Accion", value = "Precio",
-                    PFBCOLOM, NUTRESA, PFGRUPSURA,ECOPETROL)
+                    PFBCOLOM, NUTRESA, PFGRUPSURA,ECOPETROL) #Ordenar los precios de las columnas seleccionadas en una sola columna. 
 
 opciones <- c("PFBCOLOM", "NUTRESA", "PFGRUPSURA","ECOPETROL")
 
 ui <- dashboardPage(
-  dashboardHeader(title = span("Simulador Utilidades Colcap",
-                               style = "font-size: 16px"), 
-                  titleWidth = 250 ),
+  dashboardHeader(title = span("Simulador Utilidades Colcap", #Titulo superior izquierdo.
+                               style = "font-size: 16px"),  #Tamaño.
+                  titleWidth = 250 ), #Ancho.
   
   
   dashboardSidebar(
-    width = 250,
+    width = 250, #Ancho del menu.
     sidebarMenu(
-      id = "Menu",
+      id = "Menu", #ID
       style = "position: relative; overflow: visible;",
-      menuItem("Base de datos", tabName = "DataF", 
-               icon = icon("database", lib = "font-awesome")),
+      menuItem("Base de datos", tabName = "DataF",   #Creacion de una pestaña llamada base de datos, con ID DataF.
+               icon = icon("database", lib = "font-awesome")), #Se agrega el icono de base de datos.
       
-      menuItem("Retorno Acciones", tabName = 'ACC',
-               icon = icon("chart-line", lib = "font-awesome"))
+      menuItem("Retorno Acciones", tabName = 'ACC', #Creacion de una pestaña llamada retorno de acciones, con ID DataF.
+               icon = icon("chart-line", lib = "font-awesome")) #Se agrega el incono de grafico.
     )
   ),
   dashboardBody(
@@ -57,41 +57,41 @@ ui <- dashboardPage(
     .content-wrapper, .right-side {
     background-color: #fafafa;
     }
-    '))),
-    tabItems(
-      tabItem(
-        tabName = "DataF",
-        fluidRow(
-          column(3,
-                 dateRangeInput("IN_Fechas", "1) Seleccione el rango de fechas",
-                                start = "2020-01-01",end = "2022-12-31",
-                                min = "2020-01-01",max = "2024-12-31",
-                                format = "yyyy-mm-dd",
-                                width = "200px"),
-                 pickerInput("IN_Sector", label = "Sector Economico",
-                             choices = NULL, multiple = T, 
-                             options = list(`actions-box` = TRUE)),
-                 pickerInput("IN_Moneda", label = "Moneda",
+    '))), #Se escribio codigo en CSS para personalizar el color del menu y fondo del cuerpo de la pagina.
+    tabItems( #Trabajar con varias pestañas.
+      tabItem( #Trabajar con una pestaña.
+        tabName = "DataF",  # Se selecciona la pestaña DataF.
+        fluidRow( #Organiza objetos en una fila.
+          column(3, #Se crea una columna de ancho 3.
+                 dateRangeInput("IN_Fechas", "1) Seleccione el rango de fechas", #Creacion de input para la fecha de asamblea.
+                                start = "2020-01-01",end = "2022-12-31", #Se indican fechas seleccionadas por defecto.
+                                min = "2020-01-01",max = "2024-12-31", #Limites de seleccion.
+                                format = "yyyy-mm-dd", #Formato de impresion.
+                                width = "200px"), #Ancho.
+                 pickerInput("IN_Sector", label = "Sector Economico", #Creacion de input para seleccionar el sector economico.
+                             choices = NULL, multiple = T,  #No se establecen opciones, se pueden seleccionar multiples opciones.
+                             options = list(`actions-box` = TRUE)), #Permite seleccionar y anular la seleccion de TODO.
+                 pickerInput("IN_Moneda", label = "Moneda", #Creacion de input para seleccionar la moneda.
                              choices = NULL, multiple = T, 
                              options = list(`actions-box` = TRUE))),
           column(3,
-                 pickerInput("IN_Emisor",label = "Emisor",
+                 pickerInput("IN_Emisor",label = "Emisor", #Creacion de input para seleccionar el Emisor.
                              choices = NULL,multiple = T,
                              options = list(`actions-box` = TRUE)),
-                 pickerInput("IN_Nemo",label = "Nemotecnico",
+                 pickerInput("IN_Nemo",label = "Nemotecnico", #Creacion de input para seleccionar el Nemotecnico.
                              choices = NULL,multiple = T,
                              options = list(`actions-box` = TRUE))
           )),
-        fluidRow(
-          column(12,
-                 h2(("GRAFICOS DIVIDENDOS"), align = "center", style = 'font-size:30px'))
+        fluidRow( #Organiza objeto en una fila.
+          column(12, #Se crea una columna de ancho 12.
+                 h2(("GRAFICOS DIVIDENDOS"), align = "center", style = 'font-size:30px')) #Se agrega titulo h2, centrado y tamaño.
         ),
-        br(),
+        br(), #Espacio entre el objeto anterior y lo que sigue.
         fluidRow(
-          tabBox(width = 12,title = "Graficos",
+          tabBox(width = 12,title = "Graficos", #Se crea una caja de tamaño 12 con titulo graficos.
                  
-                 tabPanel("Dividendos", plotOutput("Grafico_D")),
-                 tabPanel("Dividendos acumulados", plotOutput("Grafico_AD")))
+                 tabPanel("Dividendos", plotOutput("Grafico_D")), #Se crea un espacio o pestaña llamada "Dividendos", en donde se muestra el grafico llamado "Grafico_D".
+                 tabPanel("Dividendos acumulados", plotOutput("Grafico_AD"))) #Se crea un espacio o pestaña llamada "Dividendos acumulados", en donde se muestra el grafico llamado "Grafico_AD".
         ),
         
         fluidRow(
@@ -103,15 +103,15 @@ ui <- dashboardPage(
         fluidRow(
           tabBox(width = 12,title = "Bases de datos",
                  
-                 tabPanel("Base original", dataTableOutput("Base")),
-                 tabPanel("Resumen por dia", dataTableOutput("Base_d")))
+                 tabPanel("Base original", dataTableOutput("Base")), #Se crea un espacio o pestaña llamada "Base original", en donde se muestra el dataframe "Base". 
+                 tabPanel("Resumen por dia", dataTableOutput("Base_d"))) #Se crea un espacio o pestaña llamada "Resumen por dia", en donde se muestra el dataframe "Base_d".
         ),
-      ),
+      ), #Se cierran los elementos a mostrar en la pestaña DataF.
       
       
       
-      tabItem(
-        tabName = "ACC",
+      tabItem( #Se abre el codigo para indicar los elementos u objetos de otra pestaña.
+        tabName = "ACC", #Seleccion de la pestaña ACC
         h2("En construccion"),
         fluidRow(
           column(3,
@@ -124,16 +124,16 @@ ui <- dashboardPage(
                  selectInput("IN_Nemo1",label = "Nemotecnico accion.",
                              choices = opciones)
           )),
-        h3("Retorno por dividendos"),
-        verbatimTextOutput("base1"),
-        h3("Retorno por diferencia de precio"),
-        verbatimTextOutput("base2")
+        h3("Retorno por dividendos"), #Creacion titulo h3.
+        verbatimTextOutput("base1"), #Se muestra la salida u output del resultado de "base1".
+        h3("Retorno por diferencia de precio"), #Creacion titulo h3.
+        verbatimTextOutput("base2") #Se muestra la salida u output del resultado de "base2".
       )
     )
     
     
   ),
-  skin = "yellow"
+  skin = "yellow" #Tema de la pagina amarillo.
   
 )
 server <- function(input, output, session) {  
