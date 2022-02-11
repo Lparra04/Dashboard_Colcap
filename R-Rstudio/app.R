@@ -142,69 +142,66 @@ server <- function(input, output, session) {
   ################################## PRIMER MENU #################################
   
   observe({
-    dat0<-filter(Archivo2020,FECHA.ASAMBLEA >= input$IN_Fechas[1] &
+    dat0<-filter(Archivo2020,FECHA.ASAMBLEA >= input$IN_Fechas[1] & #Crea dat0 con filtro de la seleccion en el input IN_Fechas
                    FECHA.ASAMBLEA <= input$IN_Fechas[2])
-    updatePickerInput(session, "IN_Sector", label = "2) Sector economico", 
-                      choices = sort(unique(dat0$SECTOR)),selected = unique(dat0$SECTOR))
+    updatePickerInput(session, "IN_Sector", label = "2) Sector economico",  #Se actualiza el input del sector IN_Sector 
+                      choices = sort(unique(dat0$SECTOR)),selected = unique(dat0$SECTOR)) #con los valores únicos de la columna SECTOR de df dat0 como opciones. Se seleccionan todas por defecto
   })
   
   
   observe({
-    dat00<-Archivo2020$MONEDA[Archivo2020$SECTOR%in%input$IN_Sector]
-    updatePickerInput(session, "IN_Moneda", label = "3) Moneda", 
-                      choices = sort(unique(dat00)),selected = unique(dat00))
+    dat00<-Archivo2020$MONEDA[Archivo2020$SECTOR%in%input$IN_Sector] #Crea dat00, un objeto con los datos de la variable MONEDA aplicando el filtro de la seleccion en el input IN_Sector.
+    updatePickerInput(session, "IN_Moneda", label = "3) Moneda",  #Se actualiza el input de la moneda "IN_Moneda" y su etiqueta.
+                      choices = sort(unique(dat00)),selected = unique(dat00)) #con los valores únicos del objeto dat00 como opciones. Se seleccionan todas por defecto.
   })
   
   
   observe({
-    dat1<-Archivo2020$EMISOR[Archivo2020$MONEDA%in%input$IN_Moneda]
+    dat1<-Archivo2020$EMISOR[Archivo2020$MONEDA%in%input$IN_Moneda] #Crea dat1, un objeto con los datos de la variable EMISOR aplicando el filtro de la seleccion en el input IN_Moneda.
     updatePickerInput(session, "IN_Emisor", label = "4) Emisor de la accion", 
                       choices = sort(unique(dat1)),selected = unique(dat1))
   })
   
   observe({
-    dat2<-Archivo2020$NEMOTECNICO[Archivo2020$EMISOR%in%input$IN_Emisor]
+    dat2<-Archivo2020$NEMOTECNICO[Archivo2020$EMISOR%in%input$IN_Emisor] #Crea dat2, un objeto con los datos de la variable NEMOTECNICO aplicando el filtro de la seleccion en el input IN_Emisor
     updatePickerInput(session, "IN_Nemo", label = "5)Nemotecnico", 
                       choices = sort(unique(dat2)),selected = unique(dat2))
   })
   
   
-  datn<-reactive({
+  datn<-reactive({ #Funcion reactiva para la creacion de un df con todos los filtros aplicados sobre el df original. 
     Archivo2020 %>% filter(SECTOR %in% input$IN_Sector &
                              MONEDA %in% input$IN_Moneda &
                              EMISOR %in% input$IN_Emisor &
                              NEMOTECNICO %in% input$IN_Nemo)%>%
-      select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS,
+      select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS, #Eliminación de columnas.
              -DESCRIPCION.PAGO.PDU,-MODO.DE.PAGO)
     
   })
   
-  output$Base <- renderDataTable({
-    
-    Base_M1 <- datn()
-    names(Base_M1)[6]="FECHA.FINAL"
-    names(Base_M1)[8]="CUOTA"
-    
-    Base_M1
+  output$Base <- renderDataTable({ #SE CREA EL OUTPUT BASE, QUE SEGUN EL RENDER IMPRIME UNA DATATABLE O DF. 
+    #Contenido de Base.
+    Base_M1 <- datn() #Se guarda el resultado de datn en el objeto Base_M1    
+    Base_M1 #Imprime Base_M1.
   })
   
   
   
-  Base_AD<-reactive({
+  Base_AD<-reactive({ #Funcion reactiva con el nombre Base_AD.
     Archivo2020%>%
-      na.omit(Archivo2020$CUOTA)%>%
-      group_by(MONEDA,FECHA.INICIAL)%>%
+      na.omit(Archivo2020$CUOTA)%>% #Omite NA dela columna CUOTA del df original.
       filter(FECHA.ASAMBLEA >= input$IN_Fechas[1] &
                FECHA.ASAMBLEA <= input$IN_Fechas[2] &
                SECTOR %in% input$IN_Sector &
                MONEDA %in% input$IN_Moneda &
                EMISOR %in% input$IN_Emisor &
-               NEMOTECNICO %in% input$IN_Nemo)%>%
-      summarize(Total = sum(CUOTA))%>%
-      mutate(T_div=cumsum(Total))
+               NEMOTECNICO %in% input$IN_Nemo)%>% #Filtros de los Inputs.
+      group_by(MONEDA,FECHA.INICIAL)%>% 
+      summarize(Total = sum(CUOTA))%>% #Creacion variable Total, que es la suma de la cuota para cada fecha.
+      mutate(T_div=cumsum(Total)) #Creacion variable T_div, que es la suma acumulada de los dividendos para cada fecha.
   })
   
-  output$Base_d <- renderDataTable({
+  output$Base_d <- renderDataTable({ #CREACION DEL OUTPUT Base_D.
     Base_AD()
   })
   
