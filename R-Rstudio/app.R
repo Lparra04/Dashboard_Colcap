@@ -31,7 +31,14 @@ opciones <- c("PFBCOLOM", "NUTRESA", "PFGRUPSURA","ECOPETROL")
 ui <- dashboardPage(
   dashboardHeader(title = span("Simulador Utilidades Colcap", #Titulo superior izquierdo.
                                style = "font-size: 16px"),  #Tamaño.
-                  titleWidth = 250 ), #Ancho.
+                  titleWidth = 250, #Ancho.
+                  dropdownMenu(type = "messages",
+                               tags$li(
+                                 a(href = "https://www.linkedin.com/in/jose-pinzon-8006641a2/",
+                                   target = "_blank",
+                                   tagAppendAttributes(icon("users"), class = "text-info"),
+                                   "Autor, dar clic acá")
+                                 ))), 
   
   
   dashboardSidebar(
