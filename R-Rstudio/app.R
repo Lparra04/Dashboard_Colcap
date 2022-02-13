@@ -35,7 +35,7 @@ ui <- dashboardPage(
                   dropdownMenu(type = "messages",
                                tags$li(
                                  a(href = "https://www.linkedin.com/in/jose-pinzon-8006641a2/",
-                                   target = "_blank",
+                                   style= 'color:black;',
                                    tagAppendAttributes(icon("users"), class = "text-info"),
                                    "Autor, dar clic acá")
                                  ))), 
