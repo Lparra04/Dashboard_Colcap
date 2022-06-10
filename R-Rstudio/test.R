@@ -18,7 +18,7 @@ ui <- dashboardPage(
   
   dashboardSidebar(disable = TRUE),
   dashboardBody(
-    tabsetPanel(tabPanel(title="Base de Datos", 
+    tabsetPanel(tabPanel(title="Dividendos", 
                          fluidRow(column(2,dateRangeInput("IN_Fechas", "Seleccione el rango de fechas", #Creacion de input para la fecha de asamblea.
                                                           start = "2020-01-01",end = "2022-12-31", #Se indican fechas seleccionadas por defecto.
                                                           min = "2020-01-01",max = "2024-12-31", #Limites de seleccion.
