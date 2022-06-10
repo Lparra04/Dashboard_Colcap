@@ -8,10 +8,10 @@ library(ggiraph)
 server<- function(input, output, session) {
   source("C:/Users/Laura/Desktop/prueba/bases.R")
   
-  ################################## PRIMER MENU #################################
+  ################################## PRIMER MENU ################################
   
   observe({
-    dat0<-filter(Archivo2020,FECHA.ASAMBLEA >= input$IN_Fechas[1] & #Crea dat0 con filtro de la seleccion en el input IN_Fechas
+    dat0<-filter(Archivo2022,FECHA.ASAMBLEA >= input$IN_Fechas[1] & #Crea dat0 con filtro de la seleccion en el input IN_Fechas
                    FECHA.ASAMBLEA <= input$IN_Fechas[2])
     updatePickerInput(session, "IN_Sector", label = "2) Sector economico",  #Se actualiza el input del sector IN_Sector 
                       choices = sort(unique(dat0$SECTOR)),selected = unique(dat0$SECTOR)) #con los valores Ãºnicos de la columna SECTOR de df dat0 como opciones. Se seleccionan todas por defecto
@@ -19,27 +19,27 @@ server<- function(input, output, session) {
   
   
   observe({
-    dat00<-Archivo2020$MONEDA[Archivo2020$SECTOR%in%input$IN_Sector] #Crea dat00, un objeto con los datos de la variable MONEDA aplicando el filtro de la seleccion en el input IN_Sector.
+    dat00<-Archivo2022$MONEDA[Archivo2022$SECTOR%in%input$IN_Sector] #Crea dat00, un objeto con los datos de la variable MONEDA aplicando el filtro de la seleccion en el input IN_Sector.
     updatePickerInput(session, "IN_Moneda", label = "3) Moneda",  #Se actualiza el input de la moneda "IN_Moneda" y su etiqueta.
                       choices = sort(unique(dat00)),selected = unique(dat00)) #con los valores Ãºnicos del objeto dat00 como opciones. Se seleccionan todas por defecto.
   })
   
   
   observe({
-    dat1<-Archivo2020$EMISOR[Archivo2020$MONEDA%in%input$IN_Moneda] #Crea dat1, un objeto con los datos de la variable EMISOR aplicando el filtro de la seleccion en el input IN_Moneda.
+    dat1<-Archivo2022$EMISOR[Archivo2022$MONEDA%in%input$IN_Moneda] #Crea dat1, un objeto con los datos de la variable EMISOR aplicando el filtro de la seleccion en el input IN_Moneda.
     updatePickerInput(session, "IN_Emisor", label = "4) Emisor de la accion", 
                       choices = sort(unique(dat1)),selected = unique(dat1))
   })
   
   observe({
-    dat2<-Archivo2020$NEMOTECNICO[Archivo2020$EMISOR%in%input$IN_Emisor] #Crea dat2, un objeto con los datos de la variable NEMOTECNICO aplicando el filtro de la seleccion en el input IN_Emisor
+    dat2<-Archivo2022$NEMOTECNICO[Archivo2022$EMISOR%in%input$IN_Emisor] #Crea dat2, un objeto con los datos de la variable NEMOTECNICO aplicando el filtro de la seleccion en el input IN_Emisor
     updatePickerInput(session, "IN_Nemo", label = "5)Nemotecnico", 
                       choices = sort(unique(dat2)),selected = unique(dat2))
   })
   
   
   datn<-reactive({ #Funcion reactiva para la creacion de un df con todos los filtros aplicados sobre el df original. 
-    Archivo2020 %>% filter(SECTOR %in% input$IN_Sector &
+    Archivo2022 %>% filter(SECTOR %in% input$IN_Sector &
                              MONEDA %in% input$IN_Moneda &
                              EMISOR %in% input$IN_Emisor &
                              NEMOTECNICO %in% input$IN_Nemo)%>%
@@ -57,8 +57,8 @@ server<- function(input, output, session) {
   
   
   Base_AD<-reactive({ #Función reactiva con el nombre Base_AD.
-    Archivo2020%>%
-      na.omit(Archivo2020$CUOTA)%>% #Omite NA de la columna CUOTA del df original.
+    Archivo2022%>%
+      na.omit(Archivo2022$CUOTA)%>% #Omite NA de la columna CUOTA del df original.
       filter(FECHA.ASAMBLEA >= input$IN_Fechas[1] &
                FECHA.ASAMBLEA <= input$IN_Fechas[2] &
                SECTOR %in% input$IN_Sector &
@@ -111,7 +111,7 @@ server<- function(input, output, session) {
   
   
   Base_R<-reactive({ #Creacion de funcion reactiva llamada Base_R.
-    Archivo2020 %>% filter(NEMOTECNICO %in% input$IN_Nemo1 &
+    Archivo2022 %>% filter(NEMOTECNICO %in% input$IN_Nemo1 &
                              FECHA.ASAMBLEA >= input$IN_Fechas1[1] & FECHA.ASAMBLEA <= input$IN_Fechas1[2])%>% #Filtros de el input fechas de la segunda pestaÃ±a.
       select(-FECHA.INGRESO, -TOTAL.ENTREGADO.EN.DIVIDENDOS, -FECHA.INICIAL, #Eliminacion de columnas.
              -DESCRIPCION.PAGO.PDU,-MONEDA,-TOTAL,-FECHA.FINAL)
@@ -138,3 +138,4 @@ server<- function(input, output, session) {
   })
   
 }
+

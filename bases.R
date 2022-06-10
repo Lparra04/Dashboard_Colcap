@@ -9,10 +9,10 @@ names(Archivo2022)[8] <- "TOTAL"
 names(Archivo2022)[9] <- "CUOTA"
 names(Archivo2022)[11] <- "TOTAL.ENTREGADO.EN.DIVIDENDOS"
 
-Archivo2022$FECHA.ASAMBLEA <- as.Date(Archivo2020$FECHA.ASAMBLEA) #Convertir tipo de dato a fecha. 
-Archivo2022$FECHA.INICIAL <- as.Date(Archivo2020$FECHA.INICIAL) #Convertir tipo de dato a fecha.
-Archivo2022$FECHA.FINAL <- as.Date(Archivo2020$FECHA.FINAL) #Convertir tipo de dato a fecha.
-Archivo2022$CUOTA <- as.numeric(Archivo2020$CUOTA) #Convertir tipo de dato a numÃ©rico.
+Archivo2022$FECHA.ASAMBLEA <- as.Date(Archivo2022$FECHA.ASAMBLEA) #Convertir tipo de dato a fecha. 
+Archivo2022$FECHA.INICIAL <- as.Date(Archivo2022$FECHA.INICIAL) #Convertir tipo de dato a fecha.
+Archivo2022$FECHA.FINAL <- as.Date(Archivo2022$FECHA.FINAL) #Convertir tipo de dato a fecha.
+Archivo2022$CUOTA <- as.numeric(Archivo2022$CUOTA) #Convertir tipo de dato a numÃ©rico.
 
 #Sección Precios
 #Se están descargando solo las acciones que se muestran aqui, buscar la manera de desacargar el resto
