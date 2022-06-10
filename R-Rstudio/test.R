@@ -48,11 +48,7 @@ ui <- dashboardPage(
                          
                          ),
                          
-                         fluidRow(column(12,h2(("GRÁFICOS DIVIDENDOS"), 
-                                               align = "center", style = "font-family:Tahoma;color:#002956;font-size:20px")#Se agrega titulo h2, centrado y tamaño.
-                         )
-                         ),
-                         br(), #Espacio entre el objeto anterior y lo que sigue.
+                    
                          fluidRow(
                            tabBox(width = 12, #Se crea una caja de tamaño 12 con para los gráficos.
                                   
