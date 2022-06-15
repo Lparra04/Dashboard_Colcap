@@ -40,7 +40,7 @@ ui <- dashboardPage(
                                               options = list(`actions-box` = TRUE)
                          )
                          ),
-                         column(2,pickerInput("IN_Nemo",label = "Nemotecnico", #Creacion de input para seleccionar el Nemotecnico.
+                         column(2,pickerInput("IN_Nemo",label = "Nemotécnico", #Creacion de input para seleccionar el Nemotécnico.
                                               choices = NULL,multiple = T,
                                               options = list(`actions-box` = TRUE)
                          )
@@ -67,6 +67,6 @@ ui <- dashboardPage(
 )
 
 #Esto llama la funciòn server que tiene los datos 
-source("C:/Users/Laura/Desktop/prueba/server.R") 
+source("C:/Users/Laura/Desktop/Dashboard_Colcap/R-Rstudio/server.R") 
 
 shinyApp(ui, server)
